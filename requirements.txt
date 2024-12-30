@@ -1,0 +1,7 @@
+flask==3.0.0
+python-dotenv==1.0.0
+flask-sqlalchemy==3.1.1
+hvac==2.1.0
+markdown2==2.4.10
+python-frontmatter==1.0.0
+flask-migrate==4.0.5

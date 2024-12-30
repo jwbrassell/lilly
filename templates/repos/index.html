@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Git Repositories{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Git Repositories</h1>
+        <a href="{{ url_for('new_repo') }}" class="btn btn-primary">Add New Repository</a>
+    </div>
+
+    {% if repos %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>URL</th>
+                        <th>Description</th>
+                        <th>Created</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for repo in repos %}
+                    <tr>
+                        <td>{{ repo.name }}</td>
+                        <td>
+                            <a href="{{ repo.url }}" target="_blank" rel="noopener noreferrer">
+                                {{ repo.url }}
+                            </a>
+                        </td>
+                        <td>{{ repo.description }}</td>
+                        <td>{{ repo.created_at.strftime('%Y-%m-%d') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            No repositories added yet. <a href="{{ url_for('new_repo') }}">Add your first repository</a>.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

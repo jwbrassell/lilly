@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Note - {{ note.title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">Edit Note</h1>
+    
+    <div class="card">
+        <div class="card-body">
+            <form method="POST">
+                <div class="mb-3">
+                    <label for="title" class="form-label">Title</label>
+                    <input type="text" class="form-control" id="title" name="title" value="{{ note.title }}" required>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="content" class="form-label">Content</label>
+                    <textarea class="tinymce" id="content" name="content">{{ note.content }}</textarea>
+                    <div class="form-text mt-2">
+                        <strong>Supported Features:</strong>
+                        <ul class="mb-0">
+                            <li>Markdown formatting</li>
+                            <li>Code blocks with syntax highlighting</li>
+                            <li>Mermaid diagrams (use code blocks with language 'mermaid')</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-between">
+                    <a href="{{ url_for('view_note', id=note.id) }}" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card mt-4">
+        <div class="card-body">
+            <h5 class="card-title">Quick Reference</h5>
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>Markdown Examples:</h6>
+                    <pre><code># Heading 1
+## Heading 2
+**Bold Text**
+*Italic Text*
+- List Item
+1. Numbered Item
+[Link](url)
+![Image](url)</code></pre>
+                </div>
+                <div class="col-md-6">
+                    <h6>Mermaid Diagram Example:</h6>
+                    <pre><code>```mermaid
+graph TD
+    A[Start] --> B{Decision}
+    B -->|Yes| C[Action]
+    B -->|No| D[Skip]
+```</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Additional TinyMCE configuration for the editor
+    document.addEventListener('DOMContentLoaded', function() {
+        tinymce.init({
+            selector: 'textarea.tinymce',
+            plugins: 'markdown codesample link lists table mermaid searchreplace',
+            toolbar: 'undo redo | formatselect | bold italic | alignleft aligncenter alignright | bullist numlist | link codesample | table searchreplace',
+            height: 500,
+            content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 14px; }',
+            codesample_languages: [
+                { text: 'Python', value: 'python' },
+                { text: 'JavaScript', value: 'javascript' },
+                { text: 'HTML/XML', value: 'markup' },
+                { text: 'Bash', value: 'bash' },
+                { text: 'Mermaid', value: 'mermaid' }
+            ],
+            setup: function(editor) {
+                editor.on('change', function() {
+                    editor.save();
+                });
+            }
+        });
+    });
+</script>
+{% endblock %}

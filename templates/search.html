@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Search Results{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="mb-4">
+        <h1>Search Results</h1>
+        <p class="text-muted">Results for: "{{ query }}"</p>
+    </div>
+
+    {% if notes %}
+        <div class="row">
+            {% for note in notes %}
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <a href="{{ url_for('view_note', id=note.id) }}" class="text-decoration-none">
+                                {{ note.title }}
+                            </a>
+                        </h5>
+                        <p class="card-text text-muted">
+                            Created: {{ note.created_at.strftime('%Y-%m-%d %H:%M') }}
+                            {% if note.updated_at != note.created_at %}
+                            <br>Updated: {{ note.updated_at.strftime('%Y-%m-%d %H:%M') }}
+                            {% endif %}
+                        </p>
+                        <div class="d-flex justify-content-end">
+                            <a href="{{ url_for('edit_note', id=note.id) }}" class="btn btn-outline-primary btn-sm me-2">
+                                Edit
+                            </a>
+                            <a href="{{ url_for('view_note', id=note.id) }}" class="btn btn-outline-secondary btn-sm">
+                                View
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            No notes found matching your search.
+        </div>
+    {% endif %}
+
+    <div class="mt-4">
+        <a href="{{ url_for('list_notes') }}" class="btn btn-secondary">Back to Notes</a>
+    </div>
+
+    <div class="card mt-4">
+        <div class="card-body">
+            <h5 class="card-title">Search Tips</h5>
+            <ul class="mb-0">
+                <li>Search is case-insensitive</li>
+                <li>Searches both titles and content</li>
+                <li>Try using specific keywords for better results</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

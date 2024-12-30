@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Local Development Hub - Home{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">Welcome to Your Local Development Hub</h1>
+    
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Git Repositories</h5>
+                    <p class="card-text">Manage and track your Git repositories in one place.</p>
+                    <a href="{{ url_for('list_repos') }}" class="btn btn-primary">View Repos</a>
+                    <a href="{{ url_for('new_repo') }}" class="btn btn-outline-primary">Add New</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Hosts</h5>
+                    <p class="card-text">Keep track of your servers, development machines, and other hosts.</p>
+                    <a href="{{ url_for('list_hosts') }}" class="btn btn-primary">View Hosts</a>
+                    <a href="{{ url_for('new_host') }}" class="btn btn-outline-primary">Add New</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Notes</h5>
+                    <p class="card-text">Create and manage your development notes with Markdown and diagrams support.</p>
+                    <a href="{{ url_for('list_notes') }}" class="btn btn-primary">View Notes</a>
+                    <a href="{{ url_for('new_note') }}" class="btn btn-outline-primary">Add New</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Quick Note Example</h5>
+                    <div class="card-text">
+                        <p>You can create notes with:</p>
+                        <ul>
+                            <li>Markdown formatting</li>
+                            <li>Code blocks with syntax highlighting</li>
+                            <li>Mermaid diagrams</li>
+                        </ul>
+                        <div class="mermaid">
+                            graph TD
+                            A[Development Hub] --> B[Git Repos]
+                            A --> C[Hosts]
+                            A --> D[Notes]
+                            D --> E[Markdown]
+                            D --> F[Mermaid]
+                            D --> G[Code Blocks]
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
