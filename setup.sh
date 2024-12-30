@@ -3,18 +3,20 @@
 # Install required packages
 pip install -r requirements.txt
 
-# Download and install Vault
+# Download and install Vault locally
 curl -o vault.zip https://releases.hashicorp.com/vault/1.13.3/vault_1.13.3_darwin_amd64.zip
 unzip vault.zip
 rm vault.zip
 chmod +x vault
-sudo mv vault /usr/local/bin/
+
+# Get absolute path to project directory
+PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Create Vault config
-mkdir -p vault/data
-cat > vault/config.hcl << EOL
+mkdir -p "$PROJECT_DIR/vault/data"
+cat > "$PROJECT_DIR/vault/config.hcl" << EOL
 storage "file" {
-  path = "vault/data"
+  path = "$PROJECT_DIR/vault/data"
 }
 
 listener "tcp" {
@@ -29,10 +31,11 @@ EOL
 VAULT_ADDR='http://127.0.0.1:5011'
 
 # Create vault management script
-cat > vault_manager.sh << EOL
+cat > "$PROJECT_DIR/vault_manager.sh" << EOL
 #!/bin/bash
 
-VAULT_PID_FILE="vault/vault.pid"
+PROJECT_DIR="$PROJECT_DIR"
+VAULT_PID_FILE="\$PROJECT_DIR/vault/vault.pid"
 VAULT_ADDR='http://127.0.0.1:5011'
 export VAULT_ADDR
 
@@ -45,7 +48,7 @@ start_vault() {
         fi
     fi
     
-    vault server -config=vault/config.hcl > vault/vault.log 2>&1 &
+    "\$PROJECT_DIR/vault" server -config="\$PROJECT_DIR/vault/config.hcl" > "\$PROJECT_DIR/vault/vault.log" 2>&1 &
     echo \$! > "\$VAULT_PID_FILE"
     echo "Started Vault with PID \$(cat \$VAULT_PID_FILE)"
     sleep 5
@@ -68,23 +71,23 @@ stop_vault() {
 }
 
 initialize_vault() {
-    if ! vault operator init -status > /dev/null 2>&1; then
+    if ! "\$PROJECT_DIR/vault" operator init -status > /dev/null 2>&1; then
         echo "Initializing Vault..."
-        vault operator init -key-shares=1 -key-threshold=1 > vault/init.txt
-        UNSEAL_KEY=\$(grep "Unseal Key 1" vault/init.txt | awk '{print \$4}')
-        VAULT_TOKEN=\$(grep "Initial Root Token" vault/init.txt | awk '{print \$4}')
+        "\$PROJECT_DIR/vault" operator init -key-shares=1 -key-threshold=1 > "\$PROJECT_DIR/vault/init.txt"
+        UNSEAL_KEY=\$(grep "Unseal Key 1" "\$PROJECT_DIR/vault/init.txt" | awk '{print \$4}')
+        VAULT_TOKEN=\$(grep "Initial Root Token" "\$PROJECT_DIR/vault/init.txt" | awk '{print \$4}')
         
         # Unseal Vault
-        vault operator unseal \$UNSEAL_KEY
+        "\$PROJECT_DIR/vault" operator unseal \$UNSEAL_KEY
         echo "Vault initialized and unsealed"
     else
         echo "Vault already initialized"
-        if [ ! -f vault/init.txt ]; then
+        if [ ! -f "$PROJECT_DIR/vault/init.txt" ]; then
             echo "Error: vault/init.txt not found"
             return 1
         fi
-        UNSEAL_KEY=\$(grep "Unseal Key 1" vault/init.txt | awk '{print \$4}')
-        vault operator unseal \$UNSEAL_KEY
+        UNSEAL_KEY=\$(grep "Unseal Key 1" "\$PROJECT_DIR/vault/init.txt" | awk '{print \$4}')
+        "\$PROJECT_DIR/vault" operator unseal \$UNSEAL_KEY
         echo "Vault unsealed"
     fi
 }
@@ -128,7 +131,7 @@ if [ ! -f vault/init.txt ]; then
     sleep 2
     
     # Get the token and add it to .env
-    VAULT_TOKEN=$(grep "Initial Root Token" vault/init.txt | awk '{print $4}')
+    VAULT_TOKEN=$(grep "Initial Root Token" "$PROJECT_DIR/vault/init.txt" | awk '{print $4}')
     echo "VAULT_TOKEN=${VAULT_TOKEN}" >> .env
     
     # Stop vault since Flask will manage it
