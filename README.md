@@ -76,6 +76,59 @@ The application will be available at:
 - Local-only access (no external connections)
 - Development mode for easy setup
 
+#### Vault Management
+
+##### Initial Setup
+The `setup.sh` script handles the initial Vault setup. If you need to set up Vault manually:
+```bash
+# Clean up any existing Vault installation
+rm -rf vault
+
+# Run setup script to install and configure Vault
+./setup.sh
+```
+
+##### Starting Vault
+To start Vault and initialize it:
+```bash
+./vault_manager.sh start
+```
+This will:
+- Start the Vault server
+- Initialize Vault if needed
+- Unseal Vault automatically
+- Store credentials in vault/init.txt
+
+##### Stopping Vault
+To stop the Vault server:
+```bash
+./vault_manager.sh stop
+```
+
+##### Restarting Vault
+To restart Vault (useful after system reboots):
+```bash
+./vault_manager.sh restart
+```
+
+##### Verification
+After starting Vault:
+1. The UI should be accessible at http://localhost:5011/ui
+2. The vault/init.txt file should contain your credentials
+3. The .env file should be updated with your VAULT_TOKEN
+
+Note: If you encounter issues, you can always clean up and start fresh:
+```bash
+# Stop Vault
+./vault_manager.sh stop
+
+# Remove Vault data
+rm -rf vault
+
+# Run setup again
+./setup.sh
+```
+
 ## Directory Structure
 
 ```
