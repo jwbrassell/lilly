@@ -21,6 +21,10 @@ def index():
 def network_utilities():
     return render_template('network/index.html')
 
+@app.route('/password-generator')
+def password_generator():
+    return render_template('password_generator.html')
+
 # Placeholder routes for existing functionality
 @app.route('/repos')
 def list_repos():
