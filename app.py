@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_migrate import Migrate
 import os
 from datetime import datetime, timedelta
-from models import db, Snippet, Tag, URL, Todo, TodoStatus
+from models import db, Snippet, Tag, URL, Todo, TodoStatus, Note
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.urandom(24)
@@ -44,10 +44,25 @@ def new_host():
 
 @app.route('/notes')
 def list_notes():
-    return render_template('notes/index.html', notes=[])
+    notes = Note.query.order_by(Note.created_at.desc()).all()
+    return render_template('notes/index.html', notes=notes)
 
-@app.route('/notes/new')
+@app.route('/notes/new', methods=['GET', 'POST'])
 def new_note():
+    if request.method == 'POST':
+        title = request.form.get('title')
+        content = request.form.get('content')
+        
+        note = Note(
+            title=title,
+            content=content
+        )
+        
+        db.session.add(note)
+        db.session.commit()
+        flash('Note created successfully!', 'success')
+        return redirect(url_for('list_notes'))
+        
     return render_template('notes/new.html')
 
 # Certificate routes

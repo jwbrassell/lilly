@@ -42,6 +42,13 @@ snippet_tags = db.Table('snippet_tags',
     db.Column('tag_id', db.Integer, db.ForeignKey('tag.id'), primary_key=True)
 )
 
+class Note(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
 class Snippet(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
