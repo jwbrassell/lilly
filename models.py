@@ -1,6 +1,8 @@
 from datetime import datetime
-from app import db
+from flask_sqlalchemy import SQLAlchemy
 from enum import Enum
+
+db = SQLAlchemy()
 
 class TodoStatus(Enum):
     PENDING = 'pending'

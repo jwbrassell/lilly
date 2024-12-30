@@ -1,0 +1,302 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Network Utilities</h2>
+    
+    <!-- Tabs -->
+    <ul class="nav nav-tabs" id="networkTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="ipv4-tab" data-bs-toggle="tab" data-bs-target="#ipv4" type="button" role="tab">IPv4</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="ipv6-tab" data-bs-toggle="tab" data-bs-target="#ipv6" type="button" role="tab">IPv6</button>
+        </li>
+    </ul>
+
+    <!-- Tab Content -->
+    <div class="tab-content mt-3" id="networkTabContent">
+        <!-- IPv4 Tab -->
+        <div class="tab-pane fade show active" id="ipv4" role="tabpanel">
+            <div class="card">
+                <div class="card-body">
+                    <h4>IPv4 Calculator</h4>
+                    <div class="form-group">
+                        <label for="ipv4Input">IP Address/CIDR</label>
+                        <input type="text" class="form-control" id="ipv4Input" placeholder="192.168.1.1/24">
+                        <small class="form-text text-muted">Enter an IPv4 address with CIDR notation (e.g., 192.168.1.1/24)</small>
+                    </div>
+                    <button class="btn btn-primary" onclick="calculateIPv4()">Calculate</button>
+                    
+                    <div id="ipv4Results" class="mt-4">
+                        <h5>Results</h5>
+                        <table class="table table-bordered">
+                            <tbody>
+                                <tr>
+                                    <th>Network Address</th>
+                                    <td id="networkAddress"></td>
+                                </tr>
+                                <tr>
+                                    <th>Broadcast Address</th>
+                                    <td id="broadcastAddress"></td>
+                                </tr>
+                                <tr>
+                                    <th>Subnet Mask</th>
+                                    <td id="subnetMask"></td>
+                                </tr>
+                                <tr>
+                                    <th>First Usable IP</th>
+                                    <td id="firstUsableIP"></td>
+                                </tr>
+                                <tr>
+                                    <th>Last Usable IP</th>
+                                    <td id="lastUsableIP"></td>
+                                </tr>
+                                <tr>
+                                    <th>Total Hosts</th>
+                                    <td id="totalHosts"></td>
+                                </tr>
+                                <tr>
+                                    <th>Binary Representation</th>
+                                    <td id="binaryRepresentation"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- IPv6 Tab -->
+        <div class="tab-pane fade" id="ipv6" role="tabpanel">
+            <div class="card">
+                <div class="card-body">
+                    <h4>IPv6 Calculator</h4>
+                    <div class="form-group">
+                        <label for="ipv6Input">IPv6 Address/CIDR</label>
+                        <input type="text" class="form-control" id="ipv6Input" placeholder="2001:db8::/64">
+                        <small class="form-text text-muted">Enter an IPv6 address with CIDR notation (e.g., 2001:db8::/64)</small>
+                    </div>
+                    <button class="btn btn-primary" onclick="calculateIPv6()">Calculate</button>
+                    
+                    <div id="ipv6Results" class="mt-4">
+                        <h5>Results</h5>
+                        <table class="table table-bordered">
+                            <tbody>
+                                <tr>
+                                    <th>Full Address</th>
+                                    <td id="fullAddress"></td>
+                                </tr>
+                                <tr>
+                                    <th>Compressed Address</th>
+                                    <td id="compressedAddress"></td>
+                                </tr>
+                                <tr>
+                                    <th>Network Prefix</th>
+                                    <td id="networkPrefix"></td>
+                                </tr>
+                                <tr>
+                                    <th>First Address</th>
+                                    <td id="firstAddress"></td>
+                                </tr>
+                                <tr>
+                                    <th>Last Address</th>
+                                    <td id="lastAddress"></td>
+                                </tr>
+                                <tr>
+                                    <th>Total Addresses</th>
+                                    <td id="totalAddresses"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// IPv4 Calculations
+function calculateIPv4() {
+    const input = document.getElementById('ipv4Input').value;
+    const [ip, cidr] = input.split('/');
+    
+    if (!isValidIPv4(ip) || !isValidCIDR(cidr, 4)) {
+        alert('Please enter a valid IPv4 address and CIDR');
+        return;
+    }
+
+    const mask = cidrToSubnetMask(cidr);
+    const networkAddr = calculateNetworkAddress(ip, mask);
+    const broadcast = calculateBroadcastAddress(networkAddr, mask);
+    const firstIP = getFirstUsableIP(networkAddr);
+    const lastIP = getLastUsableIP(broadcast);
+    const totalHosts = Math.pow(2, 32 - parseInt(cidr)) - 2;
+
+    document.getElementById('networkAddress').textContent = networkAddr;
+    document.getElementById('broadcastAddress').textContent = broadcast;
+    document.getElementById('subnetMask').textContent = mask;
+    document.getElementById('firstUsableIP').textContent = firstIP;
+    document.getElementById('lastUsableIP').textContent = lastIP;
+    document.getElementById('totalHosts').textContent = totalHosts;
+    document.getElementById('binaryRepresentation').textContent = ipToBinary(ip);
+}
+
+// IPv6 Calculations
+function calculateIPv6() {
+    const input = document.getElementById('ipv6Input').value;
+    const [ip, cidr] = input.split('/');
+    
+    if (!isValidIPv6(ip) || !isValidCIDR(cidr, 6)) {
+        alert('Please enter a valid IPv6 address and CIDR');
+        return;
+    }
+
+    const fullAddr = expandIPv6(ip);
+    const compressed = compressIPv6(fullAddr);
+    const prefix = calculateIPv6Prefix(fullAddr, cidr);
+    const first = calculateFirstIPv6(prefix, cidr);
+    const last = calculateLastIPv6(prefix, cidr);
+    const total = calculateTotalIPv6Addresses(cidr);
+
+    document.getElementById('fullAddress').textContent = fullAddr;
+    document.getElementById('compressedAddress').textContent = compressed;
+    document.getElementById('networkPrefix').textContent = prefix;
+    document.getElementById('firstAddress').textContent = first;
+    document.getElementById('lastAddress').textContent = last;
+    document.getElementById('totalAddresses').textContent = total;
+}
+
+// Helper Functions
+function isValidIPv4(ip) {
+    const parts = ip.split('.');
+    if (parts.length !== 4) return false;
+    return parts.every(part => {
+        const num = parseInt(part);
+        return num >= 0 && num <= 255;
+    });
+}
+
+function isValidIPv6(ip) {
+    const parts = ip.split(':');
+    if (parts.length > 8) return false;
+    return parts.every(part => {
+        return /^[0-9A-Fa-f]{0,4}$/.test(part);
+    });
+}
+
+function isValidCIDR(cidr, version) {
+    const num = parseInt(cidr);
+    return version === 4 ? (num >= 0 && num <= 32) : (num >= 0 && num <= 128);
+}
+
+function cidrToSubnetMask(cidr) {
+    const bits = parseInt(cidr);
+    const mask = new Array(4).fill(0);
+    for (let i = 0; i < 4; i++) {
+        if (bits >= 8) {
+            mask[i] = 255;
+        } else if (bits > 0) {
+            mask[i] = 256 - Math.pow(2, 8 - bits);
+        }
+    }
+    return mask.join('.');
+}
+
+function ipToBinary(ip) {
+    return ip.split('.').map(num => 
+        parseInt(num).toString(2).padStart(8, '0')
+    ).join('.');
+}
+
+function calculateNetworkAddress(ip, mask) {
+    const ipParts = ip.split('.').map(Number);
+    const maskParts = mask.split('.').map(Number);
+    return ipParts.map((part, i) => part & maskParts[i]).join('.');
+}
+
+function calculateBroadcastAddress(network, mask) {
+    const networkParts = network.split('.').map(Number);
+    const maskParts = mask.split('.').map(Number);
+    return networkParts.map((part, i) => part | (255 - maskParts[i])).join('.');
+}
+
+function getFirstUsableIP(network) {
+    const parts = network.split('.').map(Number);
+    parts[3]++;
+    return parts.join('.');
+}
+
+function getLastUsableIP(broadcast) {
+    const parts = broadcast.split('.').map(Number);
+    parts[3]--;
+    return parts.join('.');
+}
+
+function expandIPv6(ip) {
+    let parts = ip.split(':');
+    const doubleColonIndex = parts.indexOf('');
+    
+    if (doubleColonIndex !== -1) {
+        const missing = 8 - (parts.length - 1);
+        const zeros = new Array(missing).fill('0000');
+        parts.splice(doubleColonIndex, 1, ...zeros);
+    }
+    
+    return parts.map(part => part.padStart(4, '0')).join(':');
+}
+
+function compressIPv6(ip) {
+    return ip.replace(/(?:^|:)0+(?=[0-9a-fA-F])/g, ':')
+             .replace(/:{3,}/g, '::');
+}
+
+function calculateIPv6Prefix(ip, cidr) {
+    const parts = ip.split(':');
+    const prefixParts = [...parts];
+    const fullBits = Math.floor(cidr / 16);
+    const remainingBits = cidr % 16;
+    
+    if (remainingBits > 0) {
+        const mask = parseInt('1'.repeat(remainingBits) + '0'.repeat(16 - remainingBits), 2);
+        prefixParts[fullBits] = (parseInt(parts[fullBits], 16) & mask).toString(16);
+    }
+    
+    for (let i = fullBits + 1; i < 8; i++) {
+        prefixParts[i] = '0';
+    }
+    
+    return prefixParts.join(':');
+}
+
+function calculateFirstIPv6(prefix, cidr) {
+    return prefix;
+}
+
+function calculateLastIPv6(prefix, cidr) {
+    const parts = prefix.split(':');
+    const fullBits = Math.floor(cidr / 16);
+    const remainingBits = cidr % 16;
+    
+    for (let i = fullBits + 1; i < 8; i++) {
+        parts[i] = 'ffff';
+    }
+    
+    if (remainingBits > 0) {
+        const mask = parseInt('0'.repeat(remainingBits) + '1'.repeat(16 - remainingBits), 2);
+        parts[fullBits] = (parseInt(parts[fullBits], 16) | mask).toString(16);
+    }
+    
+    return parts.join(':');
+}
+
+function calculateTotalIPv6Addresses(cidr) {
+    const bits = 128 - parseInt(cidr);
+    if (bits >= 32) {
+        return '2^' + bits + ' (too large to display)';
+    }
+    return Math.pow(2, bits).toString();
+}
+</script>
+{% endblock %}

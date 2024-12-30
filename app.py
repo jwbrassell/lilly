@@ -1,24 +1,25 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
-from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 import os
 from datetime import datetime, timedelta
+from models import db, Snippet, Tag, URL, Todo, TodoStatus
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.urandom(24)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///snippets.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-db = SQLAlchemy(app)
+db.init_app(app)
 migrate = Migrate(app, db)
-
-# Import models after db initialization to avoid circular imports
-from models import Snippet, Tag, URL, Todo, TodoStatus
 
 # Main dashboard route
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/network')
+def network_utilities():
+    return render_template('network/index.html')
 
 # Placeholder routes for existing functionality
 @app.route('/repos')
@@ -371,4 +372,4 @@ def todo_report():
     return render_template('todos/report.html', todos=todos, statuses=TodoStatus)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port=5010)
