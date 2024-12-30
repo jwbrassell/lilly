@@ -47,6 +47,32 @@ def list_notes():
     notes = Note.query.order_by(Note.created_at.desc()).all()
     return render_template('notes/index.html', notes=notes)
 
+@app.route('/notes/<int:id>')
+def view_note(id):
+    note = Note.query.get_or_404(id)
+    return render_template('notes/view.html', note=note, html_content=note.content)
+
+@app.route('/notes/<int:id>/edit', methods=['GET', 'POST'])
+def edit_note(id):
+    note = Note.query.get_or_404(id)
+    
+    if request.method == 'POST':
+        note.title = request.form.get('title')
+        note.content = request.form.get('content')
+        db.session.commit()
+        flash('Note updated successfully!', 'success')
+        return redirect(url_for('view_note', id=note.id))
+    
+    return render_template('notes/edit.html', note=note)
+
+@app.route('/notes/<int:id>/delete', methods=['POST'])
+def delete_note(id):
+    note = Note.query.get_or_404(id)
+    db.session.delete(note)
+    db.session.commit()
+    flash('Note deleted successfully!', 'success')
+    return redirect(url_for('list_notes'))
+
 @app.route('/notes/new', methods=['GET', 'POST'])
 def new_note():
     if request.method == 'POST':
