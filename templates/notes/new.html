@@ -20,9 +20,11 @@
                     <div class="form-text mt-2">
                         <strong>Supported Features:</strong>
                         <ul class="mb-0">
-                            <li>Markdown formatting</li>
+                            <li>Rich text formatting (bold, italic, lists)</li>
                             <li>Code blocks with syntax highlighting</li>
-                            <li>Mermaid diagrams (use code blocks with language 'mermaid')</li>
+                            <li>Tables</li>
+                            <li>Links</li>
+                            <li>Search and replace</li>
                         </ul>
                     </div>
                 </div>
@@ -40,24 +42,21 @@
             <h5 class="card-title">Quick Reference</h5>
             <div class="row">
                 <div class="col-md-6">
-                    <h6>Markdown Examples:</h6>
-                    <pre><code># Heading 1
-## Heading 2
-**Bold Text**
-*Italic Text*
-- List Item
-1. Numbered Item
-[Link](url)
-![Image](url)</code></pre>
+                    <h6>Code Block Example:</h6>
+                    <pre><code>def hello_world():
+    print("Hello, World!")
+
+# Use the code button in the toolbar
+# to insert formatted code blocks</code></pre>
                 </div>
                 <div class="col-md-6">
-                    <h6>Mermaid Diagram Example:</h6>
-                    <pre><code>```mermaid
-graph TD
-    A[Start] --> B{Decision}
-    B -->|Yes| C[Action]
-    B -->|No| D[Skip]
-```</code></pre>
+                    <h6>Formatting Tips:</h6>
+                    <ul>
+                        <li>Use toolbar buttons for formatting</li>
+                        <li>Create tables with the table button</li>
+                        <li>Insert code samples with the {'<>'} button</li>
+                        <li>Add links with the link button</li>
+                    </ul>
                 </div>
             </div>
         </div>
@@ -71,16 +70,15 @@ graph TD
     document.addEventListener('DOMContentLoaded', function() {
         tinymce.init({
             selector: 'textarea.tinymce',
-            plugins: 'markdown codesample link lists table mermaid searchreplace',
-            toolbar: 'undo redo | formatselect | bold italic | alignleft aligncenter alignright | bullist numlist | link codesample | table searchreplace',
+            plugins: 'codesample link lists table searchreplace',
+            toolbar: 'undo redo | formatselect | bold italic | bullist numlist | link codesample | table searchreplace',
             height: 500,
             content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 14px; }',
             codesample_languages: [
                 { text: 'Python', value: 'python' },
                 { text: 'JavaScript', value: 'javascript' },
                 { text: 'HTML/XML', value: 'markup' },
-                { text: 'Bash', value: 'bash' },
-                { text: 'Mermaid', value: 'mermaid' }
+                { text: 'Bash', value: 'bash' }
             ],
             setup: function(editor) {
                 editor.on('change', function() {
