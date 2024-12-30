@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}View Certificate - {{ certificate.domain }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Certificate for {{ certificate.domain }}</h1>
+        <div>
+            <a href="{{ url_for('edit_certificate', id=certificate.id) }}" class="btn btn-warning">Edit</a>
+            <a href="{{ url_for('list_certificates') }}" class="btn btn-secondary">Back to Certificates</a>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Certificate Details</h5>
+        </div>
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-3"><strong>Domain:</strong></div>
+                <div class="col-md-9">{{ certificate.domain }}</div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-3"><strong>Issuer:</strong></div>
+                <div class="col-md-9">{{ certificate.issuer or 'Not specified' }}</div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-3"><strong>Status:</strong></div>
+                <div class="col-md-9">
+                    {% if certificate.status == 'active' %}
+                        <span class="badge bg-success">Active</span>
+                    {% elif certificate.status == 'expired' %}
+                        <span class="badge bg-danger">Expired</span>
+                    {% elif certificate.status == 'revoked' %}
+                        <span class="badge bg-warning">Revoked</span>
+                    {% else %}
+                        <span class="badge bg-secondary">Unknown</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-3"><strong>Expiry Date:</strong></div>
+                <div class="col-md-9">
+                    {% if certificate.expiry_date %}
+                        {{ certificate.expiry_date.strftime('%Y-%m-%d') }}
+                        {% if certificate.expiry_date < now %}
+                            <span class="badge bg-danger">Expired</span>
+                        {% elif (certificate.expiry_date - now).days < 30 %}
+                            <span class="badge bg-warning">Expiring Soon</span>
+                        {% else %}
+                            <span class="badge bg-success">Valid</span>
+                        {% endif %}
+                    {% else %}
+                        Not specified
+                    {% endif %}
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-3"><strong>Created:</strong></div>
+                <div class="col-md-9">{{ certificate.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-3"><strong>Last Updated:</strong></div>
+                <div class="col-md-9">{{ certificate.updated_at.strftime('%Y-%m-%d %H:%M:%S') }}</div>
+            </div>
+            {% if certificate.notes %}
+            <div class="row mb-3">
+                <div class="col-md-3"><strong>Notes:</strong></div>
+                <div class="col-md-9">{{ certificate.notes|replace('\n', '<br>')|safe if certificate.notes else '' }}</div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="accordion" id="certificateFiles">
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#privateKey">
+                    Private Key
+                </button>
+            </h2>
+            <div id="privateKey" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <pre class="bg-light p-3"><code>{{ certificate.private_key }}</code></pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#certificate">
+                    Certificate
+                </button>
+            </h2>
+            <div id="certificate" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <pre class="bg-light p-3"><code>{{ certificate.certificate }}</code></pre>
+                </div>
+            </div>
+        </div>
+
+        {% if certificate.chain %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#chain">
+                    Certificate Chain
+                </button>
+            </h2>
+            <div id="chain" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <pre class="bg-light p-3"><code>{{ certificate.chain }}</code></pre>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="mt-4">
+        <form action="{{ url_for('delete_certificate', id=certificate.id) }}" method="POST" class="d-inline">
+            <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this certificate?')">Delete Certificate</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,213 +1,374 @@
-from flask import Flask, render_template, request, jsonify, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-from datetime import datetime
-import markdown2
 import os
-import hvac
-import signal
-import sys
-import subprocess
-from dotenv import load_dotenv
-import atexit
-
-load_dotenv()
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
+app.config['SECRET_KEY'] = os.urandom(24)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///snippets.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
-def start_vault():
-    try:
-        # Start vault using the manager script
-        subprocess.run(['./vault_manager.sh', 'start'], check=True)
-        print("Vault started successfully")
-    except subprocess.CalledProcessError as e:
-        print(f"Error starting Vault: {e}")
-        sys.exit(1)
+# Import models after db initialization to avoid circular imports
+from models import Snippet, Tag, URL, Todo, TodoStatus
 
-def stop_vault():
-    try:
-        subprocess.run(['./vault_manager.sh', 'stop'], check=True)
-        print("Vault stopped successfully")
-    except subprocess.CalledProcessError as e:
-        print(f"Error stopping Vault: {e}")
-
-# Initialize Vault client with error handling and auto-unsealing
-def initialize_vault():
-    try:
-        client = hvac.Client(
-            url=os.getenv('VAULT_ADDR'),
-            token=os.getenv('VAULT_TOKEN')
-        )
-        
-        # Check if Vault needs to be unsealed
-        if client.sys.is_sealed():
-            print("Vault is sealed. Attempting to unseal...")
-            try:
-                # Read unseal key from init file
-                with open('vault/init.txt', 'r') as f:
-                    init_data = f.read()
-                    unseal_key = next(line.split(': ')[1] for line in init_data.split('\n') if 'Unseal Key 1' in line)
-                
-                # Unseal vault
-                client.sys.submit_unseal_key(unseal_key)
-                print("Vault unsealed successfully")
-            except Exception as e:
-                print(f"Error unsealing Vault: {str(e)}")
-                return None
-        
-        # Verify connection
-        if client.sys.is_initialized() and not client.sys.is_sealed():
-            print("Connected to Vault successfully")
-            print(f"Root Token: {os.getenv('VAULT_TOKEN')}")
-            print(f"UI available at: {os.getenv('VAULT_ADDR')}/ui")
-            return client
-        else:
-            print("Warning: Vault is not properly initialized")
-            return None
-            
-    except Exception as e:
-        print(f"Error connecting to Vault: {str(e)}")
-        print("Warning: Proceeding without Vault connection")
-        return None
-
-# Start Vault when Flask starts
-start_vault()
-vault_client = initialize_vault()
-
-# Register cleanup on Flask shutdown
-atexit.register(stop_vault)
-
-# Database Models
-class GitRepo(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(200), nullable=False)
-    url = db.Column(db.String(500), nullable=False)
-    description = db.Column(db.Text)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-class Host(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    hostname = db.Column(db.String(200), nullable=False)
-    ip_address = db.Column(db.String(45), nullable=False)
-    username = db.Column(db.String(100))
-    description = db.Column(db.Text)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-class Note(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(200), nullable=False)
-    content = db.Column(db.Text, nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-
-# Routes
+# Main dashboard route
 @app.route('/')
 def index():
     return render_template('index.html')
 
-# Git Repo routes
-@app.route('/repos', methods=['GET'])
+# Placeholder routes for existing functionality
+@app.route('/repos')
 def list_repos():
-    repos = GitRepo.query.all()
-    return render_template('repos/index.html', repos=repos)
+    return render_template('repos/index.html', repos=[])
 
-@app.route('/repos/new', methods=['GET', 'POST'])
+@app.route('/repos/new')
 def new_repo():
-    if request.method == 'POST':
-        repo = GitRepo(
-            name=request.form['name'],
-            url=request.form['url'],
-            description=request.form['description']
-        )
-        db.session.add(repo)
-        db.session.commit()
-        return redirect(url_for('list_repos'))
     return render_template('repos/new.html')
 
-# Host routes
-@app.route('/hosts', methods=['GET'])
+@app.route('/hosts')
 def list_hosts():
-    hosts = Host.query.all()
-    return render_template('hosts/index.html', hosts=hosts)
+    return render_template('hosts/index.html', hosts=[])
 
-@app.route('/hosts/new', methods=['GET', 'POST'])
+@app.route('/hosts/new')
 def new_host():
-    if request.method == 'POST':
-        host = Host(
-            hostname=request.form['hostname'],
-            ip_address=request.form['ip_address'],
-            username=request.form['username'],
-            description=request.form['description']
-        )
-        db.session.add(host)
-        db.session.commit()
-        return redirect(url_for('list_hosts'))
     return render_template('hosts/new.html')
 
-# Notes routes
-@app.route('/notes', methods=['GET'])
+@app.route('/notes')
 def list_notes():
-    notes = Note.query.all()
-    return render_template('notes/index.html', notes=notes)
+    return render_template('notes/index.html', notes=[])
 
-@app.route('/notes/new', methods=['GET', 'POST'])
+@app.route('/notes/new')
 def new_note():
-    if request.method == 'POST':
-        note = Note(
-            title=request.form['title'],
-            content=request.form['content']
-        )
-        db.session.add(note)
-        db.session.commit()
-        return redirect(url_for('list_notes'))
     return render_template('notes/new.html')
 
-@app.route('/notes/<int:id>', methods=['GET'])
-def view_note(id):
-    note = Note.query.get_or_404(id)
-    html_content = markdown2.markdown(note.content, extras=["fenced-code-blocks", "tables", "mermaid"])
-    return render_template('notes/view.html', note=note, html_content=html_content)
+# Certificate routes
+@app.route('/certificates')
+def list_certificates():
+    return render_template('certificates/index.html', certificates=[])
 
-@app.route('/notes/<int:id>/edit', methods=['GET', 'POST'])
-def edit_note(id):
-    note = Note.query.get_or_404(id)
+@app.route('/certificates/new')
+def new_certificate():
+    return render_template('certificates/new.html')
+
+@app.route('/certificates/<int:id>')
+def view_certificate(id):
+    return render_template('certificates/view.html')
+
+@app.route('/certificates/<int:id>/edit')
+def edit_certificate(id):
+    return render_template('certificates/edit.html')
+
+# Snippets routes
+@app.route('/snippets')
+def list_snippets():
+    snippets = Snippet.query.order_by(Snippet.created_at.desc()).all()
+    return render_template('snippets/index.html', snippets=snippets)
+
+@app.route('/snippets/new', methods=['GET', 'POST'])
+def new_snippet():
     if request.method == 'POST':
-        note.title = request.form['title']
-        note.content = request.form['content']
+        title = request.form.get('title')
+        command = request.form.get('command')
+        description = request.form.get('description')
+        usage_notes = request.form.get('usage_notes')
+        example = request.form.get('example')
+        expected_output = request.form.get('expected_output')
+        failure_scenarios = request.form.get('failure_scenarios')
+        tag_names = request.form.get('tags', '').split(',')
+
+        snippet = Snippet(
+            title=title,
+            command=command,
+            description=description,
+            usage_notes=usage_notes,
+            example=example,
+            expected_output=expected_output,
+            failure_scenarios=failure_scenarios
+        )
+
+        # Handle tags
+        for tag_name in tag_names:
+            tag_name = tag_name.strip()
+            if tag_name:
+                tag = Tag.query.filter_by(name=tag_name).first()
+                if not tag:
+                    tag = Tag(name=tag_name)
+                    db.session.add(tag)
+                snippet.tags.append(tag)
+
+        db.session.add(snippet)
         db.session.commit()
-        return redirect(url_for('view_note', id=note.id))
-    return render_template('notes/edit.html', note=note)
+        flash('Snippet created successfully!', 'success')
+        return redirect(url_for('list_snippets'))
 
-@app.route('/notes/<int:id>/delete', methods=['POST'])
-def delete_note(id):
-    note = Note.query.get_or_404(id)
-    db.session.delete(note)
+    return render_template('snippets/new.html')
+
+@app.route('/snippets/<int:id>')
+def view_snippet(id):
+    snippet = Snippet.query.get_or_404(id)
+    return render_template('snippets/view.html', snippet=snippet)
+
+@app.route('/snippets/<int:id>/edit', methods=['GET', 'POST'])
+def edit_snippet(id):
+    snippet = Snippet.query.get_or_404(id)
+    
+    if request.method == 'POST':
+        snippet.title = request.form.get('title')
+        snippet.command = request.form.get('command')
+        snippet.description = request.form.get('description')
+        snippet.usage_notes = request.form.get('usage_notes')
+        snippet.example = request.form.get('example')
+        snippet.expected_output = request.form.get('expected_output')
+        snippet.failure_scenarios = request.form.get('failure_scenarios')
+        
+        # Update tags
+        snippet.tags.clear()
+        tag_names = request.form.get('tags', '').split(',')
+        for tag_name in tag_names:
+            tag_name = tag_name.strip()
+            if tag_name:
+                tag = Tag.query.filter_by(name=tag_name).first()
+                if not tag:
+                    tag = Tag(name=tag_name)
+                    db.session.add(tag)
+                snippet.tags.append(tag)
+
+        db.session.commit()
+        flash('Snippet updated successfully!', 'success')
+        return redirect(url_for('view_snippet', id=snippet.id))
+
+    return render_template('snippets/edit.html', snippet=snippet)
+
+@app.route('/snippets/<int:id>/delete', methods=['POST'])
+def delete_snippet(id):
+    snippet = Snippet.query.get_or_404(id)
+    db.session.delete(snippet)
     db.session.commit()
-    return redirect(url_for('list_notes'))
+    flash('Snippet deleted successfully!', 'success')
+    return redirect(url_for('list_snippets'))
 
-@app.route('/search', methods=['GET'])
-def search():
+@app.route('/snippets/search')
+def search_snippets():
     query = request.args.get('q', '')
-    notes = Note.query.filter(
-        (Note.title.ilike(f'%{query}%')) | 
-        (Note.content.ilike(f'%{query}%'))
-    ).all()
-    return render_template('search.html', notes=notes, query=query)
+    tag = request.args.get('tag', '')
+    
+    snippets = Snippet.query
+    
+    if query:
+        snippets = snippets.filter(
+            db.or_(
+                Snippet.title.ilike(f'%{query}%'),
+                Snippet.command.ilike(f'%{query}%'),
+                Snippet.description.ilike(f'%{query}%')
+            )
+        )
+    
+    if tag:
+        snippets = snippets.filter(Snippet.tags.any(Tag.name == tag))
+    
+    snippets = snippets.order_by(Snippet.created_at.desc()).all()
+    return render_template('snippets/index.html', snippets=snippets, query=query, tag=tag)
 
-def signal_handler(sig, frame):
-    print('\nShutting down...')
-    if vault_client:
-        print('Closing Vault client connection...')
-        vault_client.adapter.session.close()
-        print('Vault client connection closed.')
-    stop_vault()
-    sys.exit(0)
+# URL routes
+@app.route('/urls')
+def list_urls():
+    urls = URL.query.order_by(URL.created_at.desc()).all()
+    return render_template('urls/index.html', urls=urls)
+
+@app.route('/urls/new', methods=['GET', 'POST'])
+def new_url():
+    if request.method == 'POST':
+        url = request.form.get('url')
+        title = request.form.get('title')
+        notes = request.form.get('notes')
+        tag_names = request.form.get('tags', '').split(',')
+
+        url_entry = URL(
+            url=url,
+            title=title,
+            notes=notes
+        )
+
+        # Handle tags
+        for tag_name in tag_names:
+            tag_name = tag_name.strip()
+            if tag_name:
+                tag = Tag.query.filter_by(name=tag_name).first()
+                if not tag:
+                    tag = Tag(name=tag_name)
+                    db.session.add(tag)
+                url_entry.tags.append(tag)
+
+        db.session.add(url_entry)
+        db.session.commit()
+        flash('URL added successfully!', 'success')
+        return redirect(url_for('list_urls'))
+
+    return render_template('urls/new.html')
+
+@app.route('/urls/<int:id>')
+def view_url(id):
+    url = URL.query.get_or_404(id)
+    return render_template('urls/view.html', url=url)
+
+@app.route('/urls/<int:id>/edit', methods=['GET', 'POST'])
+def edit_url(id):
+    url = URL.query.get_or_404(id)
+    
+    if request.method == 'POST':
+        url.url = request.form.get('url')
+        url.title = request.form.get('title')
+        url.notes = request.form.get('notes')
+        
+        # Update tags
+        url.tags.clear()
+        tag_names = request.form.get('tags', '').split(',')
+        for tag_name in tag_names:
+            tag_name = tag_name.strip()
+            if tag_name:
+                tag = Tag.query.filter_by(name=tag_name).first()
+                if not tag:
+                    tag = Tag(name=tag_name)
+                    db.session.add(tag)
+                url.tags.append(tag)
+
+        db.session.commit()
+        flash('URL updated successfully!', 'success')
+        return redirect(url_for('view_url', id=url.id))
+
+    return render_template('urls/edit.html', url=url)
+
+@app.route('/urls/<int:id>/delete', methods=['POST'])
+def delete_url(id):
+    url = URL.query.get_or_404(id)
+    db.session.delete(url)
+    db.session.commit()
+    flash('URL deleted successfully!', 'success')
+    return redirect(url_for('list_urls'))
+
+@app.route('/urls/search')
+def search_urls():
+    query = request.args.get('q', '')
+    tag = request.args.get('tag', '')
+    
+    urls = URL.query
+    
+    if query:
+        urls = urls.filter(
+            db.or_(
+                URL.title.ilike(f'%{query}%'),
+                URL.url.ilike(f'%{query}%'),
+                URL.notes.ilike(f'%{query}%')
+            )
+        )
+    
+    if tag:
+        urls = urls.filter(URL.tags.any(Tag.name == tag))
+    
+    urls = urls.order_by(URL.created_at.desc()).all()
+    return render_template('urls/index.html', urls=urls, query=query, tag=tag)
+
+# Todo routes
+@app.route('/todos')
+def list_todos():
+    status_filter = request.args.get('status')
+    week_filter = request.args.get('week')
+    
+    todos = Todo.query
+    
+    if status_filter:
+        todos = todos.filter(Todo.status == TodoStatus(status_filter))
+    
+    if week_filter:
+        week_start = datetime.strptime(week_filter, '%Y-%m-%d')
+        week_end = week_start + timedelta(days=7)
+        todos = todos.filter(Todo.created_at.between(week_start, week_end))
+    
+    todos = todos.order_by(Todo.due_date.asc(), Todo.created_at.desc()).all()
+    return render_template('todos/index.html', todos=todos, statuses=TodoStatus)
+
+@app.route('/todos/new', methods=['GET', 'POST'])
+def new_todo():
+    if request.method == 'POST':
+        title = request.form.get('title')
+        description = request.form.get('description')
+        status = TodoStatus(request.form.get('status', 'pending'))
+        notes = request.form.get('notes')
+        due_date = request.form.get('due_date')
+        
+        if due_date:
+            due_date = datetime.strptime(due_date, '%Y-%m-%d')
+        
+        todo = Todo(
+            title=title,
+            description=description,
+            status=status,
+            notes=notes,
+            due_date=due_date
+        )
+        
+        db.session.add(todo)
+        db.session.commit()
+        flash('Todo created successfully!', 'success')
+        return redirect(url_for('list_todos'))
+    
+    return render_template('todos/new.html', statuses=TodoStatus)
+
+@app.route('/todos/<int:id>')
+def view_todo(id):
+    todo = Todo.query.get_or_404(id)
+    return render_template('todos/view.html', todo=todo)
+
+@app.route('/todos/<int:id>/edit', methods=['GET', 'POST'])
+def edit_todo(id):
+    todo = Todo.query.get_or_404(id)
+    
+    if request.method == 'POST':
+        todo.title = request.form.get('title')
+        todo.description = request.form.get('description')
+        todo.status = TodoStatus(request.form.get('status'))
+        todo.notes = request.form.get('notes')
+        due_date = request.form.get('due_date')
+        
+        if due_date:
+            todo.due_date = datetime.strptime(due_date, '%Y-%m-%d')
+        
+        db.session.commit()
+        flash('Todo updated successfully!', 'success')
+        return redirect(url_for('view_todo', id=todo.id))
+    
+    return render_template('todos/edit.html', todo=todo, statuses=TodoStatus)
+
+@app.route('/todos/<int:id>/delete', methods=['POST'])
+def delete_todo(id):
+    todo = Todo.query.get_or_404(id)
+    db.session.delete(todo)
+    db.session.commit()
+    flash('Todo deleted successfully!', 'success')
+    return redirect(url_for('list_todos'))
+
+@app.route('/todos/report')
+def todo_report():
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+    status = request.args.get('status')
+    
+    todos = Todo.query
+    
+    if start_date and end_date:
+        start = datetime.strptime(start_date, '%Y-%m-%d')
+        end = datetime.strptime(end_date, '%Y-%m-%d')
+        todos = todos.filter(Todo.created_at.between(start, end))
+    
+    if status:
+        todos = todos.filter(Todo.status == TodoStatus(status))
+    
+    todos = todos.order_by(Todo.created_at.desc()).all()
+    return render_template('todos/report.html', todos=todos, statuses=TodoStatus)
 
 if __name__ == '__main__':
-    signal.signal(signal.SIGINT, signal_handler)
-    app.run(host='127.0.0.1', port=5010)
+    app.run(debug=True)

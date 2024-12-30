@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block head %}
+{{ super() }}
+<script src="{{ url_for('static', filename='tinymce/tinymce/js/tinymce/tinymce.min.js') }}"></script>
+<style>
+  .tag {
+    display: inline-block;
+    padding: 0.25em 0.5em;
+    margin: 0.2em;
+    background-color: #e9ecef;
+    border-radius: 0.25rem;
+    font-size: 0.875rem;
+  }
+  .tag:hover {
+    background-color: #dee2e6;
+    text-decoration: none;
+  }
+  pre.command {
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 0.25rem;
+    border: 1px solid #dee2e6;
+    position: relative;
+  }
+  .copy-btn {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+  }
+  .metadata {
+    color: #6c757d;
+    font-size: 0.875rem;
+  }
+  .tinymce-content img {
+    max-width: 100%;
+    height: auto;
+  }
+</style>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        alert('Copied to clipboard!');
+    }).catch(err => {
+        console.error('Failed to copy:', err);
+    });
+}
+
+function initTinyMCE() {
+    tinymce.init({
+        selector: '.tinymce-editor',
+        plugins: 'codesample link lists image table code help wordcount',
+        toolbar: 'undo redo | formatselect | bold italic | alignleft aligncenter alignright | bullist numlist outdent indent | link image | codesample | help',
+        height: 300,
+        codesample_languages: [
+            {text: 'Bash', value: 'bash'},
+            {text: 'Python', value: 'python'},
+            {text: 'JavaScript', value: 'javascript'},
+            {text: 'HTML/XML', value: 'markup'},
+            {text: 'CSS', value: 'css'},
+            {text: 'SQL', value: 'sql'},
+            {text: 'JSON', value: 'json'},
+            {text: 'YAML', value: 'yaml'}
+        ],
+        content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 14px; }',
+        menubar: 'file edit view insert format tools table help',
+        branding: false
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    if (document.querySelector('.tinymce-editor')) {
+        initTinyMCE();
+    }
+});
+</script>
+{% endblock %}

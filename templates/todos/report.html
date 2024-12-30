@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}Todo Report{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h2 class="mb-0">Todo Report</h2>
+                </div>
+                <div class="card-body">
+                    <!-- Report Filters -->
+                    <form method="get" class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label">Start Date</label>
+                            <input type="date" name="start_date" class="form-control" value="{{ request.args.get('start_date', '') }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">End Date</label>
+                            <input type="date" name="end_date" class="form-control" value="{{ request.args.get('end_date', '') }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Status</label>
+                            <select name="status" class="form-select">
+                                <option value="">All</option>
+                                {% for status in statuses %}
+                                <option value="{{ status.value }}" {% if request.args.get('status') == status.value %}selected{% endif %}>
+                                    {{ status.value|title }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary">Generate Report</button>
+                            <a href="{{ url_for('todo_report') }}" class="btn btn-secondary">Clear Filters</a>
+                            <button type="button" class="btn btn-outline-primary float-end" onclick="window.print()">Print Report</button>
+                        </div>
+                    </form>
+
+                    <!-- Report Content -->
+                    <div class="report-content">
+                        <!-- Report Header -->
+                        <div class="text-center mb-4">
+                            <h3>Todo Report</h3>
+                            <p class="text-muted">
+                                {% if request.args.get('start_date') and request.args.get('end_date') %}
+                                    Period: {{ request.args.get('start_date') }} to {{ request.args.get('end_date') }}
+                                {% endif %}
+                                {% if request.args.get('status') %}
+                                    | Status: {{ request.args.get('status')|title }}
+                                {% endif %}
+                            </p>
+                        </div>
+
+                        <!-- Report Table -->
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Title</th>
+                                        <th>Status</th>
+                                        <th>Due Date</th>
+                                        <th>Created</th>
+                                        <th>Last Updated</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for todo in todos %}
+                                    <tr>
+                                        <td>
+                                            {{ todo.title }}
+                                            {% if todo.description %}
+                                            <small class="text-muted d-block">{{ todo.description|truncate(50) }}</small>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge {% if todo.status.value == 'completed' %}bg-success{% elif todo.status.value == 'in_progress' %}bg-primary{% else %}bg-warning{% endif %}">
+                                                {{ todo.status.value|title }}
+                                            </span>
+                                        </td>
+                                        <td>{{ todo.due_date.strftime('%Y-%m-%d') if todo.due_date else '-' }}</td>
+                                        <td>{{ todo.created_at.strftime('%Y-%m-%d') }}</td>
+                                        <td>{{ todo.updated_at.strftime('%Y-%m-%d') }}</td>
+                                    </tr>
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="5" class="text-center">No todos found for the selected criteria.</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Report Summary -->
+                        {% if todos %}
+                        <div class="card mt-4">
+                            <div class="card-body">
+                                <h5>Summary</h5>
+                                <ul class="list-unstyled mb-0">
+                                    <li>Total Todos: {{ todos|length }}</li>
+                                    <li>Completed: {{ todos|selectattr('status.value', 'equalto', 'completed')|list|length }}</li>
+                                    <li>In Progress: {{ todos|selectattr('status.value', 'equalto', 'in_progress')|list|length }}</li>
+                                    <li>Pending: {{ todos|selectattr('status.value', 'equalto', 'pending')|list|length }}</li>
+                                </ul>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block head %}
+<style>
+@media print {
+    .navbar, form, .btn, .no-print {
+        display: none !important;
+    }
+    .card {
+        border: none !important;
+    }
+    .card-header {
+        background: none !important;
+        border: none !important;
+    }
+    .badge {
+        border: 1px solid #000 !important;
+        color: #000 !important;
+        background: none !important;
+    }
+}
+</style>
+{% endblock %}

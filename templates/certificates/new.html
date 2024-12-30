@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Add SSL Certificate{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Add SSL Certificate</h1>
+        <a href="{{ url_for('list_certificates') }}" class="btn btn-secondary">Back to Certificates</a>
+    </div>
+
+    <form method="POST" class="needs-validation" novalidate>
+        <div class="mb-3">
+            <label for="domain" class="form-label">Domain Name</label>
+            <input type="text" class="form-control" id="domain" name="domain" required>
+            <div class="form-text">Enter the domain name this certificate is for (e.g., example.com)</div>
+        </div>
+
+        <div class="mb-3">
+            <label for="private_key" class="form-label">Private Key</label>
+            <textarea class="form-control" id="private_key" name="private_key" rows="8" required></textarea>
+            <div class="form-text">Paste the private key content (usually a .key file)</div>
+        </div>
+
+        <div class="mb-3">
+            <label for="certificate" class="form-label">Certificate</label>
+            <textarea class="form-control" id="certificate" name="certificate" rows="8" required></textarea>
+            <div class="form-text">Paste the certificate content (usually a .crt or .pem file)</div>
+        </div>
+
+        <div class="mb-3">
+            <label for="chain" class="form-label">Certificate Chain (Optional)</label>
+            <textarea class="form-control" id="chain" name="chain" rows="8"></textarea>
+            <div class="form-text">Paste the certificate chain content if available (usually a .ca-bundle file)</div>
+        </div>
+
+        <div class="mb-3">
+            <label for="issuer" class="form-label">Certificate Issuer</label>
+            <input type="text" class="form-control" id="issuer" name="issuer">
+            <div class="form-text">Enter the certificate issuer (e.g., DigiCert, Let's Encrypt)</div>
+        </div>
+
+        <div class="mb-3">
+            <label for="status" class="form-label">Status</label>
+            <select class="form-select" id="status" name="status">
+                <option value="active">Active</option>
+                <option value="expired">Expired</option>
+                <option value="revoked">Revoked</option>
+            </select>
+            <div class="form-text">Select the current status of the certificate</div>
+        </div>
+
+        <div class="mb-3">
+            <label for="expiry_date" class="form-label">Expiry Date</label>
+            <input type="date" class="form-control" id="expiry_date" name="expiry_date">
+            <div class="form-text">Enter the certificate expiry date</div>
+        </div>
+
+        <div class="mb-3">
+            <label for="notes" class="form-label">Notes</label>
+            <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
+            <div class="form-text">Additional notes about this certificate (optional)</div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Save Certificate</button>
+    </form>
+</div>
+
+<script>
+// Form validation
+(function () {
+    'use strict'
+    var forms = document.querySelectorAll('.needs-validation')
+    Array.prototype.slice.call(forms)
+        .forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault()
+                    event.stopPropagation()
+                }
+                form.classList.add('was-validated')
+            }, false)
+        })
+})()
+</script>
+{% endblock %}

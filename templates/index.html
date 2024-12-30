@@ -39,28 +39,99 @@
                 </div>
             </div>
         </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Certificates</h5>
+                    <p class="card-text">Manage SSL/TLS certificates and track their expiration dates.</p>
+                    <a href="{{ url_for('list_certificates') }}" class="btn btn-primary">View Certificates</a>
+                    <a href="{{ url_for('new_certificate') }}" class="btn btn-outline-primary">Add New</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Command Snippets</h5>
+                    <p class="card-text">Store and organize your command snippets with rich documentation and examples.</p>
+                    <a href="{{ url_for('list_snippets') }}" class="btn btn-primary">View Snippets</a>
+                    <a href="{{ url_for('new_snippet') }}" class="btn btn-outline-primary">Add New</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">URLs & Bookmarks</h5>
+                    <p class="card-text">Save and organize important URLs with notes and tags for easy reference.</p>
+                    <a href="{{ url_for('list_urls') }}" class="btn btn-primary">View URLs</a>
+                    <a href="{{ url_for('new_url') }}" class="btn btn-outline-primary">Add New</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Todo Management</h5>
+                    <p class="card-text">Track tasks with status updates, due dates, and detailed notes.</p>
+                    <a href="{{ url_for('list_todos') }}" class="btn btn-primary">View Todos</a>
+                    <a href="{{ url_for('new_todo') }}" class="btn btn-outline-primary">Add New</a>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="row mt-4">
         <div class="col-12">
             <div class="card">
                 <div class="card-body">
-                    <h5 class="card-title">Quick Note Example</h5>
+                    <h5 class="card-title">Features & Capabilities</h5>
                     <div class="card-text">
-                        <p>You can create notes with:</p>
-                        <ul>
-                            <li>Markdown formatting</li>
-                            <li>Code blocks with syntax highlighting</li>
-                            <li>Mermaid diagrams</li>
-                        </ul>
-                        <div class="mermaid">
-                            graph TD
-                            A[Development Hub] --> B[Git Repos]
-                            A --> C[Hosts]
-                            A --> D[Notes]
-                            D --> E[Markdown]
-                            D --> F[Mermaid]
-                            D --> G[Code Blocks]
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6 class="mt-3">Development Tools</h6>
+                                <ul>
+                                    <li>Git repository management and tracking</li>
+                                    <li>Host information and server details</li>
+                                    <li>SSL/TLS certificate management with expiration tracking</li>
+                                    <li>Command snippets with rich documentation</li>
+                                    <li>Development notes with Markdown support</li>
+                                </ul>
+
+                                <h6 class="mt-3">URL Management</h6>
+                                <ul>
+                                    <li>Save and categorize important URLs</li>
+                                    <li>Add notes and descriptions to bookmarks</li>
+                                    <li>Tag-based organization system</li>
+                                    <li>Quick search and filtering</li>
+                                </ul>
+                            </div>
+
+                            <div class="col-md-6">
+                                <h6 class="mt-3">Todo System</h6>
+                                <ul>
+                                    <li>Create and track development tasks</li>
+                                    <li>Status tracking (Pending, In Progress, Completed)</li>
+                                    <li>Due date management</li>
+                                    <li>Detailed notes and descriptions</li>
+                                    <li>Filter todos by week and status</li>
+                                    <li>Generate reports by date range</li>
+                                    <li>Task history tracking</li>
+                                </ul>
+
+                                <h6 class="mt-3">General Features</h6>
+                                <ul>
+                                    <li>Tag-based organization across features</li>
+                                    <li>Rich text editing capabilities</li>
+                                    <li>Search functionality</li>
+                                    <li>History tracking</li>
+                                    <li>Clean, responsive interface</li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 </div>

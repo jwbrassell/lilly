@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Edit' if snippet else 'New' }} Snippet{% endblock %}
+
+{% block head %}
+<script src="{{ url_for('static', filename='tinymce/tinymce/js/tinymce/tinymce.min.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <h1>{{ 'Edit' if snippet else 'New' }} Snippet</h1>
+            <form method="post" class="needs-validation" novalidate>
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Title</label>
+                            <input type="text" class="form-control" id="title" name="title" value="{{ snippet.title if snippet else '' }}" required>
+                            <div class="invalid-feedback">Please provide a title.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="command" class="form-label">Command</label>
+                            <textarea class="form-control font-monospace" id="command" name="command" rows="3" required>{{ snippet.command if snippet else '' }}</textarea>
+                            <div class="invalid-feedback">Please provide a command.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="tags" class="form-label">Tags (comma-separated)</label>
+                            <input type="text" class="form-control" id="tags" name="tags" value="{{ snippet.tags|map(attribute='name')|join(', ') if snippet else '' }}" placeholder="linux, networking, security">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="tinymce-editor" id="description" name="description">{{ snippet.description if snippet else '' }}</textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="usage_notes" class="form-label">Usage Notes</label>
+                            <textarea class="tinymce-editor" id="usage_notes" name="usage_notes">{{ snippet.usage_notes if snippet else '' }}</textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="example" class="form-label">Example Usage</label>
+                            <textarea class="tinymce-editor" id="example" name="example">{{ snippet.example if snippet else '' }}</textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="expected_output" class="form-label">Expected Output</label>
+                            <textarea class="tinymce-editor" id="expected_output" name="expected_output">{{ snippet.expected_output if snippet else '' }}</textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="failure_scenarios" class="form-label">Failure Scenarios & Troubleshooting</label>
+                            <textarea class="tinymce-editor" id="failure_scenarios" name="failure_scenarios">{{ snippet.failure_scenarios if snippet else '' }}</textarea>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <button type="submit" class="btn btn-primary">Save Snippet</button>
+                        <a href="{{ url_for('list_snippets') }}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize TinyMCE
+    tinymce.init({
+        selector: '.tinymce-editor',
+        plugins: 'codesample link lists image table code help wordcount',
+        toolbar: 'undo redo | formatselect | bold italic | alignleft aligncenter alignright | bullist numlist outdent indent | link image | codesample | help',
+        height: 300,
+        codesample_languages: [
+            {text: 'Bash', value: 'bash'},
+            {text: 'Python', value: 'python'},
+            {text: 'JavaScript', value: 'javascript'},
+            {text: 'HTML/XML', value: 'markup'},
+            {text: 'CSS', value: 'css'},
+            {text: 'SQL', value: 'sql'},
+            {text: 'JSON', value: 'json'},
+            {text: 'YAML', value: 'yaml'}
+        ],
+        content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 14px; }',
+        menubar: 'file edit view insert format tools table help',
+        branding: false
+    });
+
+    // Form validation
+    const forms = document.querySelectorAll('.needs-validation');
+    Array.from(forms).forEach(form => {
+        form.addEventListener('submit', event => {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        }, false);
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+
+{% block title %}{{ snippet.title }} - Command Snippets{% endblock %}
+
+{% block head %}
+<style>
+  .tag {
+    display: inline-block;
+    padding: 0.25em 0.5em;
+    margin: 0.2em;
+    background-color: #e9ecef;
+    border-radius: 0.25rem;
+    font-size: 0.875rem;
+  }
+  .tag:hover {
+    background-color: #dee2e6;
+    text-decoration: none;
+  }
+  pre.command {
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 0.25rem;
+    border: 1px solid #dee2e6;
+    position: relative;
+  }
+  .copy-btn {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+  }
+  .metadata {
+    color: #6c757d;
+    font-size: 0.875rem;
+  }
+  .tinymce-content img {
+    max-width: 100%;
+    height: auto;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>{{ snippet.title }}</h1>
+                <div class="btn-group">
+                    <a href="{{ url_for('edit_snippet', id=snippet.id) }}" class="btn btn-outline-primary">Edit</a>
+                    <button type="button" class="btn btn-outline-danger" onclick="if(confirm('Are you sure you want to delete this snippet?')) document.getElementById('delete-form').submit();">Delete</button>
+                </div>
+                <form id="delete-form" action="{{ url_for('delete_snippet', id=snippet.id) }}" method="post" class="d-none"></form>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Command</h5>
+                </div>
+                <div class="card-body">
+                    <pre class="command mb-3">{{ snippet.command }}<button class="btn btn-sm btn-outline-secondary copy-btn" onclick="copyToClipboard('{{ snippet.command }}')">Copy</button></pre>
+                    <div class="mb-2">
+                        {% for tag in snippet.tags %}
+                            <a href="{{ url_for('search_snippets', tag=tag.name) }}" class="tag text-decoration-none">{{ tag.name }}</a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            {% if snippet.description %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Description</h5>
+                </div>
+                <div class="card-body tinymce-content">
+                    {{ snippet.description | safe }}
+                </div>
+            </div>
+            {% endif %}
+
+            {% if snippet.usage_notes %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Usage Notes</h5>
+                </div>
+                <div class="card-body tinymce-content">
+                    {{ snippet.usage_notes | safe }}
+                </div>
+            </div>
+            {% endif %}
+
+            {% if snippet.example %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Example Usage</h5>
+                </div>
+                <div class="card-body tinymce-content">
+                    {{ snippet.example | safe }}
+                </div>
+            </div>
+            {% endif %}
+
+            {% if snippet.expected_output %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Expected Output</h5>
+                </div>
+                <div class="card-body tinymce-content">
+                    {{ snippet.expected_output | safe }}
+                </div>
+            </div>
+            {% endif %}
+
+            {% if snippet.failure_scenarios %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Failure Scenarios & Troubleshooting</h5>
+                </div>
+                <div class="card-body tinymce-content">
+                    {{ snippet.failure_scenarios | safe }}
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="card mb-4">
+                <div class="card-footer text-muted">
+                    <small>
+                        Added {{ snippet.created_at.strftime('%Y-%m-%d %H:%M:%S') }}
+                        {% if snippet.updated_at != snippet.created_at %}
+                        • Updated {{ snippet.updated_at.strftime('%Y-%m-%d %H:%M:%S') }}
+                        {% endif %}
+                    </small>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <a href="{{ url_for('list_snippets') }}" class="btn btn-secondary">Back to Snippets</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        alert('Copied to clipboard!');
+    }).catch(err => {
+        console.error('Failed to copy:', err);
+    });
+}
+</script>
+{% endblock %}
